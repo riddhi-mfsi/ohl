@@ -1,0 +1,62 @@
+version: '3.7'
+services:
+  ohl_proxy:
+    container_name: ohl_proxy
+    build:
+      context: .
+      dockerfile: ./ohl_proxy/Dockerfile
+    image: ohl_proxy
+
+    #to start a interactive shell in a container
+    stdin_open: true
+    tty: true
+
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    ports:
+      - "80:80"
+    networks:
+      ohl-network:
+        aliases:
+          - 'ohl-proxy'
+  
+  ohl_api:
+    container_name: ohl_api
+    build:
+      context: ./../
+      dockerfile: ./ohl_docker/ohl_api_d/Dockerfile
+    command: bundle exec rails s
+    image: ohl_api
+    stdin_open: true
+    tty: true
+    volumes:
+      - ../ohl_api:/ohl/ohl_api
+    ports:
+      - "3000:3000"
+    environment:
+      VIRTUAL_HOST: api.localhost
+    networks:
+      ohl-network:
+        aliases:
+          - 'ohl-api'
+  
+  ohl_ui:
+    container_name: ohl_ui
+    build:
+      context: ./../
+      dockerfile: ./ohl_docker/ohl_ui_d/Dockerfile
+    image: ohl_ui
+    volumes: 
+      - ../ohl_ui:/ohl/ohl_ui
+    ports: 
+      - "8080:8080"
+    environment: 
+      VIRTUAL_HOST: ui.localhost
+    networks: 
+      ohl-network:
+        aliases: 
+          - 'ohl-ui'
+
+networks:
+  ohl-network:
+
